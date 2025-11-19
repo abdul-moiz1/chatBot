@@ -829,34 +829,58 @@ def api_chat():
 
 @app.route('/webhook/make', methods=['POST'])
 def webhook_make():
+    print("=" * 80)
+    print("WEBHOOK CALLED - /webhook/make")
+    print("=" * 80)
+    
     webhook_key = os.environ.get("WEBHOOK_API_KEY", "").strip()
     
     auth_header = request.headers.get('Authorization', '')
     provided_key = auth_header.replace('Bearer ', '').strip()
     
+    print(f"Auth Header: {auth_header}")
+    print(f"Auth Valid: {provided_key == webhook_key}")
+    
     if not webhook_key or provided_key != webhook_key:
+        print("❌ UNAUTHORIZED - Invalid API Key")
         return jsonify({"error": "Unauthorized"}), 401
     
     data = request.get_json()
+    print(f"Received Data: {data}")
     
     if not data:
+        print("❌ ERROR - No JSON data provided")
         return jsonify({"error": "No JSON data provided"}), 400
     
     question = data.get('question', '')
     name = data.get('name', 'User')
     
+    print(f"Question: {question}")
+    print(f"Name: {name}")
+    
     if not question:
+        print("❌ ERROR - No question provided")
         return jsonify({"error": "Question is required"}), 400
     
     try:
+        print("🤖 Calling OpenAI API...")
         answer = get_ai_response(name, question)
-        return jsonify({
+        print(f"✅ Got AI Response: {answer[:100]}...")
+        
+        response_data = {
             "success": True,
             "question": question,
             "answer": answer,
             "name": name
-        })
+        }
+        
+        print(f"📤 Sending Response: {response_data}")
+        print("=" * 80)
+        
+        return jsonify(response_data)
     except Exception as e:
+        print(f"❌ ERROR: {str(e)}")
+        print("=" * 80)
         return jsonify({
             "success": False,
             "error": str(e)
