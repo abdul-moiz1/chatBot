@@ -511,9 +511,228 @@ def get_ai_response(name, question):
         raise Exception("Unable to get AI response. Please try again later.")
 
 
+WEBHOOK_TEST_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webhook Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #1a1a2e;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .response {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        .response.show {
+            display: block;
+        }
+        .response.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        .response.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+        .response-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .response-content {
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Webhook Tester</h1>
+        <p class="subtitle">Test your /webhook/make endpoint</p>
+        
+        <div class="form-group">
+            <label for="apiKey">API Key (WEBHOOK_API_KEY)</label>
+            <input type="text" id="apiKey" placeholder="Enter your webhook API key" value="my-secret-webhook-key-2025">
+        </div>
+        
+        <div class="form-group">
+            <label for="question">Question</label>
+            <textarea id="question" placeholder="Enter a question for the AI">Give me a motivational quote</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="name">Name (optional)</label>
+            <input type="text" id="name" placeholder="Your name" value="Test User">
+        </div>
+        
+        <button id="testBtn" onclick="testWebhook()">Test Webhook</button>
+        
+        <div id="response" class="response"></div>
+        
+        <a href="/" class="back-link">← Back to Chat</a>
+    </div>
+    
+    <script>
+        async function testWebhook() {
+            const btn = document.getElementById('testBtn');
+            const responseDiv = document.getElementById('response');
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const question = document.getElementById('question').value.trim();
+            const name = document.getElementById('name').value.trim() || 'User';
+            
+            if (!apiKey) {
+                alert('Please enter an API key');
+                return;
+            }
+            
+            if (!question) {
+                alert('Please enter a question');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Testing...';
+            responseDiv.className = 'response';
+            responseDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/webhook/make', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + apiKey
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        name: name
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success show';
+                    responseDiv.innerHTML = `
+                        <div class="response-title">✅ Success!</div>
+                        <div class="response-content">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    responseDiv.className = 'response error show';
+                    responseDiv.innerHTML = `
+                        <div class="response-title">❌ Error ${response.status}</div>
+                        <div class="response-content">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                }
+            } catch (error) {
+                responseDiv.className = 'response error show';
+                responseDiv.innerHTML = `
+                    <div class="response-title">❌ Network Error</div>
+                    <div class="response-content">${error.message}</div>
+                `;
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Test Webhook';
+        }
+    </script>
+</body>
+</html>
+"""
+
 @app.route('/')
 def home():
     return render_template_string(HOME_TEMPLATE)
+
+
+@app.route('/test-webhook')
+def test_webhook():
+    return render_template_string(WEBHOOK_TEST_TEMPLATE)
 
 
 @app.route('/chat', methods=['POST'])
