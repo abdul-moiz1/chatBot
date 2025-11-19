@@ -528,14 +528,15 @@ WEBHOOK_TEST_TEMPLATE = """
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 40px 20px;
+            padding: 20px;
+            overflow-y: auto;
         }
         .container {
             max-width: 800px;
-            margin: 0 auto;
+            margin: 0 auto 20px auto;
             background: white;
             border-radius: 16px;
-            padding: 40px;
+            padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         h1 {
