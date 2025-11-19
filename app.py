@@ -607,5 +607,41 @@ def api_chat():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/webhook/make', methods=['POST'])
+def webhook_make():
+    webhook_key = os.environ.get("WEBHOOK_API_KEY", "").strip()
+    
+    auth_header = request.headers.get('Authorization', '')
+    provided_key = auth_header.replace('Bearer ', '').strip()
+    
+    if not webhook_key or provided_key != webhook_key:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No JSON data provided"}), 400
+    
+    question = data.get('question', '')
+    name = data.get('name', 'User')
+    
+    if not question:
+        return jsonify({"error": "Question is required"}), 400
+    
+    try:
+        answer = get_ai_response(name, question)
+        return jsonify({
+            "success": True,
+            "question": question,
+            "answer": answer,
+            "name": name
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
