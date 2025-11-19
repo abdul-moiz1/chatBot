@@ -5,12 +5,15 @@ This is a Flask-based web application that provides a question-answering interfa
 The application includes both a user-facing HTML interface and a JSON API endpoint designed for integration with automation platforms like Make.com.
 
 ## Recent Changes (November 19, 2025)
-- Configured Flask server to run on host 0.0.0.0 and port 8000 for Make.com accessibility
-- Implemented HTML form interface at '/' route with name, email, and question fields
-- Added '/chat' POST endpoint for processing form submissions with OpenAI integration
-- Created '/api/chat' JSON API endpoint for automation platform integration
-- Integrated OpenAI gpt-4o-mini model for AI-powered responses
-- Added mobile-friendly responsive design with gradient styling
+- Configured Flask server to run on host 0.0.0.0 and port 5000 for Replit webview compatibility
+- Transformed interface into ChatGPT-style chat application with conversation history
+- Implemented real-time message handling with JavaScript (no page reloads)
+- Added typing indicator animation while waiting for AI responses
+- Created dark theme UI with distinct user/AI message bubbles
+- Maintained '/api/chat' JSON API endpoint for Make.com automation integration
+- Integrated OpenAI gpt-4o-mini model with secure error handling
+- Fixed API key whitespace issue for reliable OpenAI connections
+- Added mobile-friendly responsive design optimized for all screen sizes
 
 # User Preferences
 
