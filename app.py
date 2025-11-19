@@ -4,7 +4,8 @@ from openai import OpenAI
 
 app = Flask(__name__)
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+client = OpenAI(api_key=api_key)
 
 HOME_TEMPLATE = """
 <!DOCTYPE html>
@@ -239,14 +240,19 @@ RESPONSE_TEMPLATE = """
 def get_ai_response(name, question):
     prompt = f"Answer the user politely and clearly in 3 to 5 short lines. User name: {name}. Question: {question}."
     
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
-    
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            timeout=30.0
+        )
+        
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"OpenAI API Error: {type(e).__name__}: {str(e)}")
+        raise Exception("Unable to get AI response. Please try again later.")
 
 
 @app.route('/')
@@ -260,6 +266,9 @@ def chat():
     email = request.form.get('email', '')
     question = request.form.get('question', '')
     
+    if not name or not question:
+        return "Error: Name and question are required", 400
+    
     try:
         answer = get_ai_response(name, question)
         
@@ -271,7 +280,54 @@ def chat():
             answer=answer
         )
     except Exception as e:
-        return f"Error: {str(e)}", 500
+        error_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Error</title>
+            <style>
+                body {{
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                }}
+                .container {{
+                    background: white;
+                    border-radius: 12px;
+                    padding: 40px;
+                    max-width: 500px;
+                    width: 100%;
+                    text-align: center;
+                }}
+                h1 {{ color: #e74c3c; margin-bottom: 20px; }}
+                .error {{ color: #555; margin-bottom: 30px; line-height: 1.6; }}
+                a {{ 
+                    display: inline-block;
+                    padding: 12px 30px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: 600;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>⚠️ Error</h1>
+                <div class="error">{str(e)}</div>
+                <a href="/">Try Again</a>
+            </div>
+        </body>
+        </html>
+        """
+        return error_html, 500
 
 
 @app.route('/api/chat', methods=['POST'])
