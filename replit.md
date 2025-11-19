@@ -9,8 +9,12 @@ The application includes both a user-facing HTML interface and a JSON API endpoi
 - Transformed interface into ChatGPT-style chat application with conversation history
 - Implemented real-time message handling with JavaScript (no page reloads)
 - Added typing indicator animation while waiting for AI responses
-- Created dark theme UI with distinct user/AI message bubbles
+- Updated design with elegant gradient background and glassmorphism effects
+- Enhanced UI with smooth animations, custom scrollbars, and modern styling
 - Maintained '/api/chat' JSON API endpoint for Make.com automation integration
+- Added '/webhook/make' endpoint for Make.com integration with Bearer token authentication
+- Implemented secure webhook authentication using WEBHOOK_API_KEY environment variable
+- Created comprehensive Make.com setup documentation (MAKE_COM_SETUP.md)
 - Integrated OpenAI gpt-4o-mini model with secure error handling
 - Fixed API key whitespace issue for reliable OpenAI connections
 - Added mobile-friendly responsive design optimized for all screen sizes
@@ -56,11 +60,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Authentication & Authorization
 
-**No Authentication System**
-- No user login or session management
+**Webhook Authentication**
+- The `/webhook/make` endpoint uses Bearer token authentication
+- Protected by WEBHOOK_API_KEY environment variable
+- Requests must include `Authorization: Bearer <key>` header
+- Returns 401 Unauthorized for invalid or missing tokens
+
+**Web Interface**
+- No user login or session management for the web chat interface
 - Open access to the question-answering interface
 
-**Design Rationale**: This is a simple demo/prototype application that doesn't require user accounts. API key protection is handled at the infrastructure level through environment variables.
+**Design Rationale**: The webhook endpoint requires authentication to prevent unauthorized access and API abuse, while the web interface remains open for ease of use. API key protection is handled at the infrastructure level through environment variables.
 
 # External Dependencies
 
@@ -86,6 +96,23 @@ Preferred communication style: Simple, everyday language.
 
 **Required Environment Variables**
 - `OPENAI_API_KEY`: Authentication credential for OpenAI API access
+- `WEBHOOK_API_KEY`: Security token for Make.com webhook authentication
 - Must be set before application startup
 
 **Deployment Considerations**: The application expects to run in an environment where these variables are properly configured (e.g., Replit Secrets, environment files, or cloud platform configuration).
+
+## Make.com Integration
+
+**Webhook Endpoint**: `/webhook/make`
+- Accepts POST requests with JSON payload containing `question` and optional `name`
+- Requires Bearer token authentication via `WEBHOOK_API_KEY`
+- Returns AI-generated responses in JSON format
+- Full setup instructions available in `MAKE_COM_SETUP.md`
+
+**Use Cases**:
+- Scheduled automated AI responses via email
+- Integration with Google Forms for automated FAQ responses
+- Custom automation workflows triggered by various events
+- Email responses using Gmail, Outlook, or custom SMTP servers
+
+**Note**: User declined to use Replit's SendGrid integration, opting to configure email sending directly in Make.com using their own email provider or SMTP settings.
